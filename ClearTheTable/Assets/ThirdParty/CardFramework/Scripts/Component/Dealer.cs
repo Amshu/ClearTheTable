@@ -43,7 +43,25 @@ public class Dealer : MonoBehaviour
 	private CardSlot _prior3CardSlot;
 
 	[SerializeField]
-	private CardSlot _prior4CardSlot;																																								
+	private CardSlot _prior4CardSlot;		
+
+	[SerializeField]
+	private CardSlot _playerA1;	// player A card 1
+
+	[SerializeField]
+	private CardSlot _playerA2;	// player A card 2
+
+	[SerializeField]
+	private CardSlot _playerA3;	// player A card 3
+
+	[SerializeField]
+	private CardSlot _playerB1;	// player B card 1
+
+	[SerializeField]
+	private CardSlot _playerB2;	// player B card 2
+
+	[SerializeField]
+	private CardSlot _playerB3;	// player B card 3																																						
 
 	private const float CardStackDelay = .01f;
 	
@@ -124,46 +142,73 @@ public class Dealer : MonoBehaviour
 
 	public IEnumerator DrawCoroutine()
 	{
+		
 		DealInProgress++;
 		
-		if (_discardHoverStackCardSlot.AddCard(_prior4CardSlot.TopCard()))
-		{	
-			yield return new WaitForSeconds(CardStackDelay);	
-		}	
-		if (_discardStackCardSlot.AddCard(_discardHoverStackCardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);
-		}
-		if (_prior4CardSlot.AddCard(_prior3CardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);
-		}
-		if (_prior3CardSlot.AddCard(_prior2CardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);
-		}
-		if (_prior2CardSlot.AddCard(_prior1CardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);
-		}
-		if (_prior1CardSlot.AddCard(_prior0CardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);	
-		}
-		if (_prior0CardSlot.AddCard(_currentCardSlot.TopCard()))
-		{
-			yield return new WaitForSeconds(CardStackDelay);		
-		}		
-		_currentCardSlot.AddCard(_stackCardSlot.TopCard());	
 		
-		int collectiveFaceValue = _prior0CardSlot.FaceValue();
-		collectiveFaceValue += _prior1CardSlot.FaceValue();
-		collectiveFaceValue += _prior2CardSlot.FaceValue();
-		collectiveFaceValue += _prior3CardSlot.FaceValue();
-		collectiveFaceValue += _prior4CardSlot.FaceValue();
-		collectiveFaceValue += _currentCardSlot.FaceValue();	
-		DealerUIInstance.FaceValueText.text = collectiveFaceValue.ToString();
+		// if (_playerA1.AddCard(_stackCardSlot.TopCard()))
+		// {	
+		//   	yield return new WaitForSeconds(CardStackDelay);	
+		// }
+		// if (_playerB1.AddCard(_stackCardSlot.TopCard()))
+		// {	
+		//   	yield return new WaitForSeconds(CardStackDelay);	
+		// }
 		
-		DealInProgress--;
+		_playerA1.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+		_playerB1.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+		_playerA2.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+		_playerB2.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+		_playerA3.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+		_playerB3.AddCard(_stackCardSlot.TopCard());
+		yield return new WaitForSeconds(1f);
+
+		
+
+
+		//  if (_discardHoverStackCardSlot.AddCard(_prior4CardSlot.TopCard()))
+		//  {	
+		//  	yield return new WaitForSeconds(CardStackDelay);	
+		//  }	
+		// if (_discardStackCardSlot.AddCard(_discardHoverStackCardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);
+		// }
+		// if (_prior4CardSlot.AddCard(_prior3CardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);
+		// }
+		// if (_prior3CardSlot.AddCard(_prior2CardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);
+		// }
+		// if (_prior2CardSlot.AddCard(_prior1CardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);
+		// }
+		// if (_prior1CardSlot.AddCard(_prior0CardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);	
+		// }
+		// if (_prior0CardSlot.AddCard(_currentCardSlot.TopCard()))
+		// {
+		// 	yield return new WaitForSeconds(CardStackDelay);		
+		// }		
+		// _currentCardSlot.AddCard(_stackCardSlot.TopCard());	
+		
+		// int collectiveFaceValue = _prior0CardSlot.FaceValue();
+		// collectiveFaceValue += _prior1CardSlot.FaceValue();
+		// collectiveFaceValue += _prior2CardSlot.FaceValue();
+		// collectiveFaceValue += _prior3CardSlot.FaceValue();
+		// collectiveFaceValue += _prior4CardSlot.FaceValue();
+		// collectiveFaceValue += _currentCardSlot.FaceValue();	
+		//DealerUIInstance.FaceValueText.text = collectiveFaceValue.ToString();
+		
+		//DealInProgress--;
 	}	
 }
