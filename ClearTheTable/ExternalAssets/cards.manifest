@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3666181783
+CRC: 327252694
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 078a379a2794ad588aec275015e9d92b
+    Hash: 82b6d8d12ef33d773d6555be605bc15e
   TypeTreeHash:
     serializedVersion: 2
     Hash: f19fbf085e00d23fbc8d6cf7b345590b
@@ -12,5 +12,56 @@ ClassTypes:
 - Class: 28
   Script: {instanceID: 0}
 Assets:
+- Assets/Cards/C_of_hammers.jpg
 - Assets/Cards/2_of_bones.jpg
+- Assets/Cards/6_of_swords.jpg
+- Assets/Cards/5_of_arrows.jpg
+- Assets/Cards/K_of_bones.jpg
+- Assets/Cards/10_of_bones.jpg
+- Assets/Cards/K_of_hammers.jpg
+- Assets/Cards/5_of_hammers.jpg
+- Assets/Cards/T_of_swords.jpg
+- Assets/Cards/2_of_arrows.jpg
+- Assets/Cards/10_of_swords.jpg
+- Assets/Cards/T_of_bones.jpg
+- Assets/Cards/7_of_bones.jpg
+- Assets/Cards/C_of_bones.jpg
+- Assets/Cards/6_of_arrows.jpg
+- Assets/Cards/8_of_bones.jpg
+- Assets/Cards/4_of_arrows.jpg
+- Assets/Cards/J_of_hammers.jpg
+- Assets/Cards/8_of_hammers.jpg
+- Assets/Cards/7_of_swords.jpg
+- Assets/Cards/C_of_swords.jpg
+- Assets/Cards/5_of_bones.jpg
+- Assets/Cards/8_of_arrows.jpg
+- Assets/Cards/8_of_swords.jpg
+- Assets/Cards/3_of_hammers.jpg
+- Assets/Cards/2_of_swords.jpg
+- Assets/Cards/9_of_bones.jpg
+- Assets/Cards/C_of_arrows.jpg
+- Assets/Cards/4_of_hammers.jpg
+- Assets/Cards/10_of_arrows.jpg
+- Assets/Cards/K_of_swords.jpg
+- Assets/Cards/6_of_bones.jpg
+- Assets/Cards/9_of_arrows.jpg
+- Assets/Cards/3_of_arrows.jpg
+- Assets/Cards/7_of_hammers.jpg
+- Assets/Cards/J_of_swords.jpg
+- Assets/Cards/2_of_hammers.jpg
+- Assets/Cards/9_of_hammers.jpg
+- Assets/Cards/5_of_swords.jpg
+- Assets/Cards/3_of_bones.jpg
+- Assets/Cards/4_of_bones.jpg
+- Assets/Cards/3_of_swords.jpg
+- Assets/Cards/4_of_swords.jpg
+- Assets/Cards/6_of_hammers.jpg
+- Assets/Cards/J_of_bones.jpg
+- Assets/Cards/10_of_hammers.jpg
+- Assets/Cards/T_of_hammers.jpg
+- Assets/Cards/J_of_arrows.jpg
+- Assets/Cards/T_of_arrows.jpg
+- Assets/Cards/K_of_arrows.jpg
+- Assets/Cards/7_of_arrows.jpg
+- Assets/Cards/9_of_swords.jpg
 Dependencies: []
