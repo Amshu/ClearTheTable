@@ -1,21 +1,45 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class DealerUI : MonoBehaviour 
 {
 	private Dealer _dealer;
 
+    //public Text FaceValueText { get { return _faceValueText; } }
+    //[SerializeField]
+    //private Text _faceValueText;
+
+    public void Shuffle()
+    {
+        if (_dealer.DealInProgress == 0)
+        {
+            StartCoroutine(_dealer.ShuffleCoroutine());
+        }
+    }
+
+
+    public void Draw()
+    {
+        if (_dealer.DealInProgress == 0)
+        {
+            StartCoroutine(_dealer.DrawCoroutine());
+        }
+    }
+
     //---------------------Amshu----------------------//
     public static DealerUI instance = null;
+
+    Manager manager;
 
     [SerializeField]
     Text p1Score;
     [SerializeField]
     Text p2Score;
 
-    [SerializeField]
-    GameObject matchScreen;
+    //[SerializeField]
+    //GameObject matchScreen;
     [SerializeField]
     GameObject noMatch;
     [SerializeField]
@@ -25,10 +49,6 @@ public class DealerUI : MonoBehaviour
     [SerializeField]
     Text ready;
     //------------------------------------------------//
-
-	//public Text FaceValueText { get { return _faceValueText; } }
-	//[SerializeField]
-	//private Text _faceValueText;
 
 	private void Awake()
 	{
@@ -49,48 +69,43 @@ public class DealerUI : MonoBehaviour
 
         _dealer = GameObject.Find("Dealer").GetComponent<Dealer>();
 		_dealer.DealerUIInstance = this;
-	}
 
+        p1Score.text = "0";
+        p2Score.text = "0";
 
-	public void Shuffle()
-	{
-		if (_dealer.DealInProgress == 0)
-		{
-			StartCoroutine(_dealer.ShuffleCoroutine());
-		}
-	}
-	
-
-	public void Draw()
-	{
-		if (_dealer.DealInProgress == 0)
-		{
-			StartCoroutine(_dealer.DrawCoroutine());
-		}
-	}
-
+        manager = Manager.instance;
+    }
 
     public void ChangeScore()
     {
-        if (Manager.instance.currentGameState == GameState.P1)
-            p1Score.text = Manager.instance.p1Score.ToString();
+        if (manager.currentGameState == GameState.P1)
+            p1Score.text = manager.p1Score.ToString();
         else
-            p2Score.text = Manager.instance.p2Score.ToString();
+            p2Score.text = manager.p2Score.ToString();
     }
 
-    public IEnumerator OnMatch(int i)
+    public void OnRoundEnd() { StartCoroutine(OnMatchCoroutine()); }
+    IEnumerator OnMatchCoroutine()
     {
-        if(i == 0)
-        {
-            DirectHitText.SetActive(true);
-            yield return new WaitForSeconds(2.0f);
-            DirectHitText.SetActive(false);
-            ChangeScore();
-        }
-        DealerUI.instance.ReadyScreen();
+        yield return new WaitForSeconds(1.0f);
+        //Debug.Log("UI function");
+        ReadyScreen();
     }
 
-    public IEnumerator NoMatch()
+    public void onDirectHit()
+    {
+        StartCoroutine(OnDirectHit());
+    }
+    IEnumerator OnDirectHit()
+    {
+        DirectHitText.SetActive(true);
+        yield return new WaitForSeconds(2.0f);
+        DirectHitText.SetActive(false);
+        ChangeScore();
+    }
+
+    public void NoMatch() { StartCoroutine(NoMatchCoroutine()); }
+    IEnumerator NoMatchCoroutine()
     {
         noMatch.SetActive(true);
         yield return new WaitForSeconds(2.0f);
@@ -99,11 +114,37 @@ public class DealerUI : MonoBehaviour
 
     public void ReadyScreen()
     {
-        if(Manager.instance.currentGameState == GameState.P1)
-            ready.text = "Player 2";       
+        if(manager.currentGameState == GameState.P1)
+            ready.text = "Player 1";       
         else
-            ready.text = "Player 1";
+            ready.text = "Player 2";
        
         readyUI.SetActive(true);
+    }
+
+    public void OnContinueClicked()
+    {
+        readyUI.gameObject.SetActive(false);
+        //manager.
+    }
+
+    public void OnMatchClicked()
+    {
+        manager.onMatch();
+    }
+
+    public void onPlaceClicked()
+    {
+        manager.Place();
+    }
+
+    public void onExitClicked()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void onRematchClicked()
+    {
+        SceneManager.LoadScene(1);
     }
 }

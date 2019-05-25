@@ -7,8 +7,11 @@ public class Card : MonoBehaviour
 
     //---------------------Amshu-----------------------//
     public Vector2  cardValue { get; set; }
+    [SerializeField]
     public GameState status { get; set; }
-    public bool armed { get; set; }
+    public bool Armed { get; set; }
+    public GameState ArmedBy { get; set; }
+    public int WhenArmed { get; set; }
     //-------------------------------------------------//
 
     public string TexturePath { get; set; }

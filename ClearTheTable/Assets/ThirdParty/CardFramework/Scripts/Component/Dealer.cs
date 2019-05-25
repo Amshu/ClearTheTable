@@ -39,7 +39,7 @@ public class Dealer : MonoBehaviour
     private CardSlot _fc_slot6;
 
     // Player 1 Card Slots
-    [SerializeField, Space]
+    [SerializeField]
     private CardSlot _p1_slot1;
     [SerializeField]
     private CardSlot _p1_slot2;
@@ -67,6 +67,11 @@ public class Dealer : MonoBehaviour
     private CardSlot _p2_slot6;
 
     [SerializeField, Space]
+    private CardSlot _p1_discardPile;
+    [SerializeField]
+    private CardSlot _p2_discardPile;
+
+    [SerializeField, Space]
     private const float CardStackDelay = .01f;
 
     /// <summary>
@@ -83,15 +88,17 @@ public class Dealer : MonoBehaviour
     IEnumerator AtStart()
     {
         StartCoroutine(StackCardRangeOnSlot(0, _cardDeck.CardList.Count, _stackCardSlot));
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
         StartCoroutine(ShuffleCoroutine());
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
         StartCoroutine(ShuffleCoroutine());
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
         StartCoroutine(ShuffleCoroutine());
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
+        StartCoroutine(ShuffleCoroutine());
+        yield return new WaitForSeconds(2f);
         StartCoroutine(DrawCoroutine());
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.5f);
         StartCoroutine(AddToTable());
     }
 
@@ -124,7 +131,7 @@ public class Dealer : MonoBehaviour
     {
         DealInProgress++;
         //DealerUIInstance.FaceValueText.text = "0";
-        Debug.Log("Shuffling");
+        //Debug.Log("Shuffling");
         //-------------------Amshu-------------------//
         // Change status of all cards
         Card[] cards = GameObject.FindObjectsOfType<Card>();
@@ -357,5 +364,81 @@ public class Dealer : MonoBehaviour
         DealInProgress--;
     }
 
+    public void addToPile()
+    {
+        StartCoroutine(AddToPile());
+    }
+    public IEnumerator AddToPile()
+    {
+        DealInProgress++;
 
+        CardSlot targetPile;
+        if (Manager.instance.currentGameState == GameState.P1)
+            targetPile = _p1_discardPile;
+        else
+            targetPile = _p2_discardPile;
+
+        foreach(Card card in Manager.instance.Selected)
+        {
+            targetPile.AddCard(card);
+            yield return new WaitForSeconds(CardStackDelay);
+        }
+        
+        DealInProgress--;
+    }
+
+    public void placeOnTable() { StartCoroutine(PlaceOnTable()); }
+    IEnumerator PlaceOnTable()
+    {
+        DealInProgress++;
+
+        if(_fc_slot1.TopCard() == null)
+        {
+            _fc_slot1.AddCard(Manager.instance.Selected[0]);
+        }
+        else if (_fc_slot2.TopCard() == null)
+        {
+            _fc_slot2.AddCard(Manager.instance.Selected[0]);
+        }
+        else if (_fc_slot3.TopCard() == null)
+        {
+            _fc_slot3.AddCard(Manager.instance.Selected[0]);
+        }
+        else if (_fc_slot4.TopCard() == null)
+        {
+            _fc_slot4.AddCard(Manager.instance.Selected[0]);
+        }
+        else if (_fc_slot5.TopCard() == null)
+        {
+            _fc_slot5.AddCard(Manager.instance.Selected[0]);
+        }
+        else if (_fc_slot6.TopCard() == null)
+        {
+            _fc_slot6.AddCard(Manager.instance.Selected[0]);
+        }
+        else
+        {
+            // You cant place cards on the table
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(CardStackDelay);
+        DealInProgress--;
+    }
+
+    public void CheckEmptyHand()
+    {
+        if(((_p1_slot1.TopCard() == null) && (_p1_slot2.TopCard() == null) 
+            && (_p1_slot3.TopCard() == null) && (_p1_slot4.TopCard() == null)
+            && (_p1_slot5.TopCard() == null) && (_p1_slot6.TopCard() == null)))
+        {
+            StartCoroutine(DrawCoroutine());
+        }
+        if(((_p2_slot1.TopCard() == null) && (_p2_slot2.TopCard() == null)
+            && (_p2_slot3.TopCard() == null) && (_p2_slot4.TopCard() == null)
+            && (_p2_slot5.TopCard() == null) && (_p2_slot6.TopCard() == null)))
+        {
+            StartCoroutine(DrawCoroutine());
+        }
+    }
 }

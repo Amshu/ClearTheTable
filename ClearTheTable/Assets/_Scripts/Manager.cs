@@ -7,13 +7,18 @@ public class Manager : MonoBehaviour
 {
     public static Manager instance = null;
 
+    [SerializeField]
+    Dealer dealer;
+
     public GameState currentGameState { get; set; }
     public GameObject camPivot;
     bool switching = false;
     public float timeTakenDuringLerp = 3.0f;
 
     [SerializeField]
-    List<Card> Selected = new List<Card>();
+    public List<Card> Selected = new List<Card>();
+    [SerializeField]
+    List<Card> Face = new List<Card>();
     [SerializeField]
     List<Card> P1Pile = new List<Card>();
     [SerializeField]
@@ -23,6 +28,7 @@ public class Manager : MonoBehaviour
     public int p1Score { get; set;}
     [SerializeField]
     public int p2Score { get; set; }
+    public int RoundNo { get; set; }
 
     void Awake()
     {
@@ -43,47 +49,10 @@ public class Manager : MonoBehaviour
 
         // Setup
         currentGameState = GameState.P1;
-
+        StartCoroutine(CamSwitch());
         p1Score = 0;
         p2Score = 0;
-
-        DealerUI.instance.ChangeScore();
-    }
-
-
-    public void SwitchPlayer()
-    {
-        Selected.Clear();
-        if (currentGameState == GameState.P1)
-            currentGameState = GameState.P2;
-        else
-            currentGameState = GameState.P1;
-    }
-
-    IEnumerator CamSwitch()
-    {
-        Quaternion target = Quaternion.identity;
-        if (currentGameState != GameState.P1)
-            target = new Quaternion(0, -180, 0, 1);
-        switching = true;
-
-        float _timeStartedLerping = Time.time;
-        while (switching)
-        {
-            float timeSinceStarted = Time.time - _timeStartedLerping;
-            float percentageComplete = timeSinceStarted / timeTakenDuringLerp;
-
-            Debug.Log("Checking");
-            Quaternion currRotation = camPivot.transform.rotation;
-            camPivot.transform.rotation = Quaternion.Slerp(currRotation, target, percentageComplete);
-            yield return new WaitForEndOfFrame();
-
-            if (camPivot.transform.rotation == target)
-            {
-                switching = false;
-                Debug.Log("Stop Switching");
-            }    
-        }
+        RoundNo = 0;
     }
 
     private void Update()
@@ -110,6 +79,7 @@ public class Manager : MonoBehaviour
                 if (hit.collider != null && hit.collider.gameObject.layer == LayerMask.NameToLayer("Card"))
                 {
                     //Debug.Log(hit.collider.GetComponent<Card>().status);
+                    //Debug.Log(hit.collider.GetComponent<Card>().cardValue);
 
                     // Debug raycast to check
                     Debug.DrawRay(ray.origin, ray.direction * 10, Color.yellow);
@@ -120,6 +90,7 @@ public class Manager : MonoBehaviour
         }
     }
 
+    // When clicked on card
     void onCardSelect(Card card)
     {
         if (card.status == GameState.Face || card.status == currentGameState)
@@ -141,59 +112,82 @@ public class Manager : MonoBehaviour
         }
     }
 
+    // When Match is clicked
     public void onMatch()
     {
-        bool IsACombination = false;
         switch (CheckCombination())
         {
             // If there is no match
             case -1:
-                DealerUI.instance.NoMatch();
-                Selected.Clear();
+                //Debug.Log("No Match");
                 foreach (Card card in Selected)
                 {
                     card.GetComponent<Outline>().enabled = false;
                 }
-                break;
+                Selected.Clear();
+                DealerUI.instance.NoMatch();
+                return;
             // Incase of direct hit
             case 0:
-                DealerUI.instance.OnMatch(0);
-
+                Debug.Log("Direct Hit");
                 if(currentGameState == GameState.P1)
                 {
                     p1Score++;
-                    // Change status and add to pile
-                    foreach(Card card in Selected)
-                    {
-                        card.GetComponent<Outline>().enabled = false;
-                        card.status = GameState.P1Pile;
-                        P1Pile.Add(card);
-                    }
-                    Selected.Clear();
-                    SwitchPlayer();
                 }
                 else
                 {
                     p2Score++;
-                    // Change status and add to pile
-                    foreach (Card card in Selected)
-                    {
-                        card.status = GameState.P2Pile;
-                        P2Pile.Add(card);
-                    }
-                    Selected.Clear();
-                    SwitchPlayer();
                 }
+                DealerUI.instance.onDirectHit();
                 break;
             // In case of 2 pair
             case 1:
-
+                Debug.Log("Pair");
                 break;
             // In case of additive
             case 2:
-
+                Debug.Log("Additive");
                 break;
         }
+        dealer.addToPile();
+        StartCoroutine(AfterMatch());
+    }
+
+    IEnumerator AfterMatch()
+    {
+        yield return new WaitForSeconds(1f);
+
+        if (currentGameState == GameState.P1)
+        {
+            // Change status and add to pile
+            foreach (Card card in Selected)
+            {
+                if (card.status == GameState.Face)
+                {
+                    Face.Remove(card);
+                }
+                card.GetComponent<Outline>().enabled = false;
+                card.status = GameState.P1Pile;
+                P1Pile.Add(card);   
+            }
+        }
+        else
+        {
+            // Change status and add to pile
+            foreach (Card card in Selected)
+            {
+                if (card.status == GameState.Face)
+                {
+                    Face.Remove(card);
+                }
+                card.GetComponent<Outline>().enabled = false;
+                card.status = GameState.P2Pile;
+                P2Pile.Add(card);
+            }
+        }
+        Selected.Clear();
+        SwitchPlayer();
+        DealerUI.instance.OnRoundEnd();
     }
 
     int CheckCombination()
@@ -220,8 +214,9 @@ public class Manager : MonoBehaviour
             if (Selected[0].cardValue.x == Selected[1].cardValue.x)
             {
                 // Check if either one is armed
-                if (Selected[0].armed || Selected[1].armed)
+                if (Selected[0].Armed || Selected[1].Armed)
                 {
+                    Debug.Log((int)currentGameState);
                     return 0;
                 }
                 return 1;
@@ -241,26 +236,138 @@ public class Manager : MonoBehaviour
             // Find the players card
             if(card.status == currentGameState)
             {
+                //Debug.Log("Its here now");
                 playerCardCheck++;
                 // If there are more than 1 hand cards
-                if(playerCardCheck > 1)
+                if(playerCardCheck >= 2)
                 {
+                    //Debug.Log("Its here now 2");
                     return false;
                 }
                 checkCard = card;
             }
             else
             {
+                //Debug.Log("Its here now 3");
                 check += (int)card.cardValue.x;
             }
         }
 
+        //Debug.Log(check);
+        //Debug.Log(checkCard.cardValue.x);
         // Check if player card adds up to the other cards
-        if ((int)checkCard.cardValue.x == check)
+        if (checkCard.cardValue.x == check)
         {
+            //Debug.Log("Its here now 4");
             return true;
         }
 
         return false;
+    }
+
+    public void Place()
+    {
+        // If only one card is selected and its from the players hand
+        if(Selected.Count == 1 && Selected[0].status == currentGameState)
+        {
+            dealer.placeOnTable();
+            StartCoroutine(AfterPlaced());
+        }
+    }
+    IEnumerator AfterPlaced()
+    {
+        yield return new WaitForSeconds(0.05f);
+
+        Selected[0].Armed = true;
+        Selected[0].ArmedBy = currentGameState;
+        Selected[0].WhenArmed = RoundNo;
+        Selected[0].status = GameState.Face;
+
+        Selected[0].GetComponent<Outline>().enabled = false;
+
+        Face.Add(Selected[0]);
+        Selected.Clear();
+
+        SwitchPlayer();
+        DealerUI.instance.OnRoundEnd();
+    }
+
+    // To switch player
+    public void SwitchPlayer()
+    {
+        RoundNo++;
+
+        CheckForArmed();
+
+        dealer.CheckEmptyHand();
+
+        Selected.Clear();
+        if (currentGameState == GameState.P1)
+            currentGameState = GameState.P2;
+        else
+            currentGameState = GameState.P1;
+        StartCoroutine(CamSwitch());
+    }
+
+    // To change camera
+    IEnumerator CamSwitch()
+    {
+        Debug.Log(RoundNo);
+        yield return new WaitForSeconds(1.0f);
+
+        Quaternion target;
+        //Debug.Log(currentGameState);
+
+        if (currentGameState == GameState.P1)
+        {
+            //Debug.Log("P1 Rotation");
+            target = Quaternion.identity;
+        }
+        else
+        {
+            //Debug.Log("P2 Rotation");
+            target = new Quaternion(0, -180, 0, 1);
+        }
+
+        camPivot.transform.rotation = target;
+
+        /*
+        switching = true;
+
+        float _timeStartedLerping = Time.time;
+        while (switching)
+        {
+            float timeSinceStarted = Time.time - _timeStartedLerping;
+            float percentageComplete = timeSinceStarted / timeTakenDuringLerp;
+
+            Debug.Log("Current Rotation" + camPivot.transform.rotation);
+            Debug.Log("Target Rotation" + target);
+
+            Quaternion currRotation = camPivot.transform.rotation;
+
+            camPivot.transform.rotation = Quaternion.Lerp(currRotation, target, percentageComplete);
+
+            if ((int)camPivot.transform.rotation.y == (int)target.y)
+            {
+                switching = false;
+                Debug.Log("-------------Stop Switching");
+                Debug.Log("Current Rotation" + camPivot.transform.rotation);
+                Debug.Log("Target Rotation" + target);
+            }
+
+            yield return new WaitForSeconds(0.01f);
+        }
+        */
+    }
+
+    void CheckForArmed()
+    {
+        foreach(Card card in Face)
+        {
+            if(RoundNo - card.WhenArmed > 1)
+            {
+                card.Armed = false;
+            }
+        }
     }
 }
