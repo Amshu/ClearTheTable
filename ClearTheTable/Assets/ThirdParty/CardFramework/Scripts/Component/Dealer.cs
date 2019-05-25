@@ -77,7 +77,22 @@ public class Dealer : MonoBehaviour
     private void Awake()
     {
         _cardDeck.InstanatiateDeck("cards");
+        StartCoroutine(AtStart());
+    }
+
+    IEnumerator AtStart()
+    {
         StartCoroutine(StackCardRangeOnSlot(0, _cardDeck.CardList.Count, _stackCardSlot));
+        yield return new WaitForSeconds(2.5f);
+        StartCoroutine(ShuffleCoroutine());
+        yield return new WaitForSeconds(2.5f);
+        StartCoroutine(ShuffleCoroutine());
+        yield return new WaitForSeconds(2.5f);
+        StartCoroutine(ShuffleCoroutine());
+        yield return new WaitForSeconds(2.5f);
+        StartCoroutine(DrawCoroutine());
+        yield return new WaitForSeconds(1.0f);
+        StartCoroutine(AddToTable());
     }
 
     private void MoveCardSlotToCardSlot(CardSlot sourceCardSlot, CardSlot targerCardSlot)
@@ -108,7 +123,18 @@ public class Dealer : MonoBehaviour
     public IEnumerator ShuffleCoroutine()
     {
         DealInProgress++;
-        DealerUIInstance.FaceValueText.text = "0";
+        //DealerUIInstance.FaceValueText.text = "0";
+        Debug.Log("Shuffling");
+        //-------------------Amshu-------------------//
+        // Change status of all cards
+        Card[] cards = GameObject.FindObjectsOfType<Card>();
+        foreach(Card card in cards)
+        {
+            card.status = GameState.Deck;
+        }
+        // Clear All Lists
+
+        //-------------------------------------------//
 
         MoveCardSlotToCardSlot(_stackCardSlot, _pickupCardSlot);
         MoveCardSlotToCardSlot(_discardStackCardSlot, _pickupCardSlot);
@@ -169,75 +195,83 @@ public class Dealer : MonoBehaviour
         // First Card
         if (_p1_slot1.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot1.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot1.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot1.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         // Second Card
         if (_p1_slot2.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot2.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot2.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot2.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         // Third Card
         if (_p1_slot3.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot3.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot3.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot3.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         // Fourth Card
         if (_p1_slot4.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot4.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot4.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot4.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         // Fifth Card
         if (_p1_slot5.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot5.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot5.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot5.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         // Sixth Card
         if (_p1_slot6.AddCard(_stackCardSlot.TopCard()))
         {
+            _p1_slot6.TopCard().status = GameState.P1;
+            // Add to p1 list
             yield return new WaitForSeconds(CardStackDelay);
         }
         if (_p2_slot6.AddCard(_stackCardSlot.TopCard()))
         {
+            _p2_slot6.TopCard().status = GameState.P2;
+            // Add to p2 list
             yield return new WaitForSeconds(CardStackDelay);
         }
 
-        // Test for Face Card Slots
-        if (_fc_slot1.AddCard(_stackCardSlot.TopCard()))
-        {
-            yield return new WaitForSeconds(CardStackDelay);
-        }
-        if (_fc_slot2.AddCard(_stackCardSlot.TopCard()))
-        {
-            yield return new WaitForSeconds(CardStackDelay);
-        }
-        if (_fc_slot3.AddCard(_stackCardSlot.TopCard()))
-        {
-            yield return new WaitForSeconds(CardStackDelay);
-        }
-        if (_fc_slot4.AddCard(_stackCardSlot.TopCard()))
-        {
-            yield return new WaitForSeconds(CardStackDelay);
-        }
+        /*
         if (_fc_slot5.AddCard(_stackCardSlot.TopCard()))
         {
             yield return new WaitForSeconds(CardStackDelay);
@@ -246,8 +280,7 @@ public class Dealer : MonoBehaviour
         {
             yield return new WaitForSeconds(CardStackDelay);
         }
-
-
+        */
 
         //if (_discardHoverStackCardSlot.AddCard(_p1_slot3.TopCard()))
         //{
@@ -289,4 +322,40 @@ public class Dealer : MonoBehaviour
 
         DealInProgress--;
     }
+
+    public IEnumerator AddToTable()
+    {
+        DealInProgress++;
+
+        // Test for Face Card Slots
+        if (_fc_slot1.AddCard(_stackCardSlot.TopCard()))
+        {
+            _fc_slot1.TopCard().status = GameState.Face;
+            // Add to face list
+
+            yield return new WaitForSeconds(CardStackDelay);
+        }
+        if (_fc_slot2.AddCard(_stackCardSlot.TopCard()))
+        {
+            _fc_slot2.TopCard().status = GameState.Face;
+            // Add to face list
+            yield return new WaitForSeconds(CardStackDelay);
+        }
+        if (_fc_slot3.AddCard(_stackCardSlot.TopCard()))
+        {
+            _fc_slot3.TopCard().status = GameState.Face;
+            // Add to face list
+            yield return new WaitForSeconds(CardStackDelay);
+        }
+        if (_fc_slot4.AddCard(_stackCardSlot.TopCard()))
+        {
+            _fc_slot4.TopCard().status = GameState.Face;
+            // Add to face list
+            yield return new WaitForSeconds(CardStackDelay);
+        }
+
+        DealInProgress--;
+    }
+
+
 }

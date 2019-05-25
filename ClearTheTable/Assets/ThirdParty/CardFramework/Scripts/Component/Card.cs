@@ -1,9 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Card : MonoBehaviour 
-{	
-	public string TexturePath { get; set; }
+public class Card : MonoBehaviour
+{
+
+
+    //---------------------Amshu-----------------------//
+    public Vector2  cardValue { get; set; }
+    public GameState status { get; set; }
+    public bool armed { get; set; }
+    //-------------------------------------------------//
+
+    public string TexturePath { get; set; }
 	
 	public string SourceAssetBundlePath { get; set; }
 	
@@ -24,10 +32,11 @@ public class Card : MonoBehaviour
 	private Transform _targetTransform;	
     
 	public CardSlot ParentCardSlot { get; set; }
-	
-	public int FaceValue { get; set; }
-    
-	private float _positionDamp = .2f;
+
+    //public int FaceValue { get; set; }
+    public int FaceValue { get; set; }
+
+    private float _positionDamp = .2f;
 
 	private float _rotationDamp = .2f;   
 	
@@ -87,5 +96,5 @@ public class Card : MonoBehaviour
 	{
 		Resources.UnloadAsset(GetComponent<Renderer>().material.mainTexture);
 		GetComponent<Renderer>().material.mainTexture = null;
-	}	
+	}
 }

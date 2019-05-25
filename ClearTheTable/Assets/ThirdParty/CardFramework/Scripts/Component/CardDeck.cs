@@ -23,12 +23,15 @@ public class CardDeck : MonoBehaviour
 			card.TexturePath = nameArray[ i ];
 			card.SourceAssetBundlePath = cardBundlePath;
 			card.transform.position = new Vector3(0, 10, 0);
-			card.FaceValue = StringToFaceValue(card.gameObject.name);
-			CardList.Add(card);
+            //----------------------Amshu--------------------------
+            card.cardValue = StringToValue(card.gameObject.name);
+            //----------------------Amshu--------------------------
+            //card.FaceValue = StringToFaceValue(card.gameObject.name);
+            CardList.Add(card);
 		}
 	}
-	
-	private int StringToFaceValue(string input)
+
+    private int StringToFaceValue(string input)
 	{
 		for (int i = 2; i < 11; ++i)
 		{
@@ -37,16 +40,59 @@ public class CardDeck : MonoBehaviour
 				return i;
 			}
 		}
-		if (input.Contains("jack") ||
-		    input.Contains("queen") ||
-		    input.Contains("king"))
+		if (input.Contains("K") ||
+		    input.Contains("C") ||
+		    input.Contains("J"))
 		{
 			return 10;
 		}
-		if (input.Contains("ace"))
+		if (input.Contains("T"))
 		{
 			return 11;
 		}
 		return 0;
-	}	
+	}
+
+    //---------------------Amshu-----------------------//
+    private Vector2 StringToValue(string input)
+    {
+        int no = -1;
+
+        for (int i = 0; i < 11; ++i)
+        {
+            if (input.Contains(i.ToString()))
+            {
+                no = i;
+                break;
+            }
+            if (input.Contains("T"))
+            {
+                no = 1;
+                break;
+            }
+            // If the card is K, C or 
+            else
+            {
+                no = 0;
+            }
+        }
+        if (input.Contains("arrows"))
+        {
+            return new Vector2(no, 1);
+        }
+        if (input.Contains("bones"))
+        {
+            return new Vector2(no, 2);
+        }
+        if (input.Contains("hammers"))
+        {
+            return new Vector2(no, 3);
+        }
+        if (input.Contains("swords"))
+        {
+            return new Vector2(no, 4);
+        }
+        return new Vector2(0, 0);
+    }
+    //------------------------------------------------//
 }
