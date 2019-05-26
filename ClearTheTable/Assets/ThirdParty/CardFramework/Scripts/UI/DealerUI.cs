@@ -41,13 +41,21 @@ public class DealerUI : MonoBehaviour
     //[SerializeField]
     //GameObject matchScreen;
     [SerializeField]
-    GameObject noMatch;
+    Text NoCombinationsText;
     [SerializeField]
     GameObject DirectHitText;
+    [SerializeField]
+    GameObject ClearTheTableText;
+
     [SerializeField]
     GameObject readyUI;
     [SerializeField]
     Text ready;
+
+    [SerializeField]
+    GameObject GameOverPanel;
+    [SerializeField]
+    Text OnGameOverText;
     //------------------------------------------------//
 
 	private void Awake()
@@ -65,7 +73,7 @@ public class DealerUI : MonoBehaviour
             Destroy(gameObject);
 
         //Sets this to not be destroyed when reloading scene
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
 
         _dealer = GameObject.Find("Dealer").GetComponent<Dealer>();
 		_dealer.DealerUIInstance = this;
@@ -84,46 +92,97 @@ public class DealerUI : MonoBehaviour
             p2Score.text = manager.p2Score.ToString();
     }
 
-    public void OnRoundEnd() { StartCoroutine(OnMatchCoroutine()); }
-    IEnumerator OnMatchCoroutine()
+    public void OnRoundEnd(Combinations result) { StartCoroutine(OnRoundEndCoroutine(result)); }
+    IEnumerator OnRoundEndCoroutine(Combinations result)
     {
-        yield return new WaitForSeconds(1.0f);
-        //Debug.Log("UI function");
-        ReadyScreen();
+        // If combinations are wrong
+        if (result < Combinations.Placed)
+        {
+            if (result == Combinations.Blank)
+            {
+                NoCombinationsText.text = "No cards selected";
+            }
+            else if (result == Combinations.NotEnoughSelected)
+            {
+                NoCombinationsText.text = "Please select 2 or more cards";
+            }
+            else if(result == Combinations.TooManySelected)
+            {
+                NoCombinationsText.text = "Please select only one card to place";
+            }
+            else if (result == Combinations.Wrong)
+            {
+                NoCombinationsText.text = "Invalid combination";
+            }
+
+            NoCombinationsText.gameObject.SetActive(true);
+            yield return new WaitForSeconds(2.0f);
+            NoCombinationsText.gameObject.SetActive(false);
+        }
+
+        // If placed
+        else if (result == Combinations.Placed)
+        {
+            yield return new WaitForSeconds(1.0f);
+            //Debug.Log("UI function");
+            ReadyScreen();
+        }
+
+        // If combinations are valid
+        else if (result > Combinations.Placed)
+        {
+            if ( (result == Combinations.PairD || result == Combinations.PairDC) 
+                || (result == Combinations.AddD || result == Combinations.AddDC))
+            {
+                DirectHitText.SetActive(true);
+                yield return new WaitForSeconds(2.0f);
+                DirectHitText.SetActive(false);
+                ChangeScore();
+            }
+            if ( (result == Combinations.PairC || result == Combinations.PairDC)
+                || (result == Combinations.AddC || result == Combinations.AddDC))
+            {
+                ClearTheTableText.SetActive(true);
+                yield return new WaitForSeconds(2.0f);
+                ClearTheTableText.SetActive(false);
+                //ChangeScore();
+            }
+            yield return new WaitForSeconds(1.0f);
+            //Debug.Log("UI function");
+            ReadyScreen();
+        }
     }
 
-    public void onDirectHit()
+    public void OnGameOver(int i)
     {
-        StartCoroutine(OnDirectHit());
-    }
-    IEnumerator OnDirectHit()
-    {
-        DirectHitText.SetActive(true);
-        yield return new WaitForSeconds(2.0f);
-        DirectHitText.SetActive(false);
-        ChangeScore();
-    }
-
-    public void NoMatch() { StartCoroutine(NoMatchCoroutine()); }
-    IEnumerator NoMatchCoroutine()
-    {
-        noMatch.SetActive(true);
-        yield return new WaitForSeconds(2.0f);
-        noMatch.SetActive(false);
+        if (i == 1)
+        {
+            OnGameOverText.text = "Player 1 takes all your gold!";
+        }
+        else if (i == 2)
+        {
+            OnGameOverText.text = "Player 2 takes all your gold!";
+        }
+        else
+        {
+            OnGameOverText.text = "The battle has ended in a draw!";
+        }
+        GameOverPanel.SetActive(true);
     }
 
     public void ReadyScreen()
     {
         if(manager.currentGameState == GameState.P1)
-            ready.text = "Player 1";       
+            ready.text = "Player 2";       
         else
-            ready.text = "Player 2";
+            ready.text = "Player 1";
        
         readyUI.SetActive(true);
     }
 
     public void OnContinueClicked()
     {
+        manager.SwitchPlayer();
         readyUI.gameObject.SetActive(false);
         //manager.
     }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 public class Dealer : MonoBehaviour
@@ -130,6 +131,7 @@ public class Dealer : MonoBehaviour
     public IEnumerator ShuffleCoroutine()
     {
         DealInProgress++;
+
         //DealerUIInstance.FaceValueText.text = "0";
         //Debug.Log("Shuffling");
         //-------------------Amshu-------------------//
@@ -179,6 +181,9 @@ public class Dealer : MonoBehaviour
         {
             _rightHandCardSlot.AddCard(_pickupCardSlot.TopCard());
         }
+
+        SoundManager.instance.PlayClip(0);
+
         yield return new WaitForSeconds(.2f);
         for (int i = 0; i < _cardDeck.CardList.Count; ++i)
         {
@@ -192,6 +197,7 @@ public class Dealer : MonoBehaviour
             }
             yield return new WaitForSeconds(CardStackDelay);
         }
+
         DealInProgress--;
     }
 
@@ -432,13 +438,60 @@ public class Dealer : MonoBehaviour
             && (_p1_slot3.TopCard() == null) && (_p1_slot4.TopCard() == null)
             && (_p1_slot5.TopCard() == null) && (_p1_slot6.TopCard() == null)))
         {
-            StartCoroutine(DrawCoroutine());
+            if(_stackCardSlot.TopCard() == null)
+            {
+                Manager.instance.OnGameOver();
+            }
+            else
+            {
+                StartCoroutine(DrawCoroutine());
+            }
         }
         if(((_p2_slot1.TopCard() == null) && (_p2_slot2.TopCard() == null)
             && (_p2_slot3.TopCard() == null) && (_p2_slot4.TopCard() == null)
             && (_p2_slot5.TopCard() == null) && (_p2_slot6.TopCard() == null)))
         {
-            StartCoroutine(DrawCoroutine());
+            if (_stackCardSlot.TopCard() == null)
+            {
+                Manager.instance.OnGameOver();
+            }
+            else
+            {
+                StartCoroutine(DrawCoroutine());
+            }
         }
+    }
+
+    public bool CheckClearTheTable()
+    {
+        List<Card> FaceCards = new List<Card>();
+
+        if (_fc_slot1.TopCard() != null)
+            FaceCards.Add((_fc_slot1.TopCard()));
+        if (_fc_slot2.TopCard() != null)
+            FaceCards.Add((_fc_slot2.TopCard()));
+        if (_fc_slot3.TopCard() != null)
+            FaceCards.Add((_fc_slot3.TopCard()));
+        if (_fc_slot4.TopCard() != null)
+            FaceCards.Add((_fc_slot4.TopCard()));
+        if (_fc_slot5.TopCard() != null)
+            FaceCards.Add((_fc_slot5.TopCard()));
+        if (_fc_slot6.TopCard() != null)
+            FaceCards.Add((_fc_slot6.TopCard()));
+
+        foreach(Card card in Manager.instance.Selected)
+        {
+            if (FaceCards.Contains(card))
+            {
+                FaceCards.Remove(card);
+            }
+        }
+
+        if(FaceCards.Count == 0)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

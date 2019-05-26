@@ -58,37 +58,52 @@ public class CardDeck : MonoBehaviour
     {
         int no = -1;
 
-        for (int i = 2; i < 11; i++)
+        if (input.StartsWith("t"))
         {
-            if (input.Contains(i.ToString()))
-            {
-                no = i;
-                break;
-            }
-        }
-        if (input.Contains("T"))
-        {
+            //Debug.Log("Throne Card");
             no = 1;
         }
-        // If the card is K, C or 
-        else if (input.Contains("C") || input.Contains("J") || input.Contains("K"))
+        // If the card is K, C or J
+        else if (input.StartsWith("c"))
         {
-            no = 0;
+            //Debug.Log("Face Card C");
+            no = 11;
+        }
+        else if (input.StartsWith("j"))
+        {
+            //Debug.Log("Face Card J");
+            no = 12;
+        }
+        else if (input.StartsWith("k"))
+        {
+            //Debug.Log("Face Card K");
+            no = 13;
+        }
+        else
+        {
+            for (int i = 2; i < 11; i++)
+            {
+                if (input.StartsWith(i.ToString()))
+                {
+                    no = i;
+                    break;
+                }
+            }
         }
         
         if (input.Contains("arrows"))
         {
             return new Vector2(no, 1);
         }
-        if (input.Contains("bones"))
+        else if (input.Contains("bones"))
         {
             return new Vector2(no, 2);
         }
-        if (input.Contains("hammers"))
+        else if (input.Contains("hammers"))
         {
             return new Vector2(no, 3);
         }
-        if (input.Contains("swords"))
+        else if (input.Contains("swords"))
         {
             return new Vector2(no, 4);
         }

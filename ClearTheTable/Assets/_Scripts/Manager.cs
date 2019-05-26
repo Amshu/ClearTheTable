@@ -45,19 +45,19 @@ public class Manager : MonoBehaviour
             Destroy(gameObject);
 
         //Sets this to not be destroyed when reloading scene
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
 
         // Setup
         currentGameState = GameState.P1;
         StartCoroutine(CamSwitch());
         p1Score = 0;
         p2Score = 0;
-        RoundNo = 0;
+        RoundNo = 1;
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && currentGameState != GameState.GameOver)
         {
             RaycastCheck();
         }
@@ -101,6 +101,8 @@ public class Manager : MonoBehaviour
                 card.GetComponent<Outline>().enabled = false;
                 // Remove from selected List
                 Selected.Remove(card);
+                // Audio Cue
+                SoundManager.instance.PlayClip(2);
             }
             else
             {
@@ -108,6 +110,8 @@ public class Manager : MonoBehaviour
                 card.GetComponent<Outline>().enabled = true;
                 // Add to selected list
                 Selected.Add(card);
+                // Audio Cue
+                SoundManager.instance.PlayClip(1);
             }
         }
     }
@@ -115,47 +119,50 @@ public class Manager : MonoBehaviour
     // When Match is clicked
     public void onMatch()
     {
-        switch (CheckCombination())
+        Combinations result = CheckCombinations();
+        Debug.Log(result + "-----------");
+        // If wrong combination
+        if (result <= Combinations.Placed)
         {
-            // If there is no match
-            case -1:
-                //Debug.Log("No Match");
-                foreach (Card card in Selected)
-                {
-                    card.GetComponent<Outline>().enabled = false;
-                }
-                Selected.Clear();
-                DealerUI.instance.NoMatch();
-                return;
-            // Incase of direct hit
-            case 0:
-                Debug.Log("Direct Hit");
-                if(currentGameState == GameState.P1)
-                {
-                    p1Score++;
-                }
-                else
-                {
-                    p2Score++;
-                }
-                DealerUI.instance.onDirectHit();
-                break;
-            // In case of 2 pair
-            case 1:
-                Debug.Log("Pair");
-                break;
-            // In case of additive
-            case 2:
-                Debug.Log("Additive");
-                break;
+            DealerUI.instance.OnRoundEnd(result);
+            // Deselect the cards
+            foreach (Card card in Selected)
+            {
+                card.GetComponent<Outline>().enabled = false;
+            }
+            Selected.Clear();
         }
-        dealer.addToPile();
-        StartCoroutine(AfterMatch());
+
+        //Debug.Log(result);
+        else if (result > Combinations.Placed)
+        {
+            // Direct Hits
+            if ((result == Combinations.PairD || result == Combinations.PairDC)
+                || (result == Combinations.AddD || result == Combinations.AddDC))
+            {
+                if (currentGameState == GameState.P1)
+                    p1Score++;
+                else
+                    p2Score++;
+            }
+            // Clear the table
+            if ((result == Combinations.PairC || result == Combinations.PairDC)
+                || (result == Combinations.AddC || result == Combinations.AddDC))
+            {
+                if (currentGameState == GameState.P1)
+                    p1Score++;
+                else
+                    p2Score++;
+            }
+            StartCoroutine(AfterMatch());
+            DealerUI.instance.OnRoundEnd(result);
+        }
+        
     }
 
     IEnumerator AfterMatch()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.2f);
 
         if (currentGameState == GameState.P1)
         {
@@ -186,81 +193,120 @@ public class Manager : MonoBehaviour
             }
         }
         Selected.Clear();
-        SwitchPlayer();
-        DealerUI.instance.OnRoundEnd();
     }
 
-    int CheckCombination()
+    Combinations CheckCombinations()
     {
         // If the size is 2 then its a same card or direct hit
         if(Selected.Count == 2)
         {
-            return (IsDirectHit());
+            return (IsPair());
         }
         // If not try for an additive combination
-        if (IsAdditive())
+        else if (Selected.Count > 2)
         {
-            return 2;
+            return (IsAdditive());
         }
-        return -1;
+        return Combinations.NotEnoughSelected;
     }
 
-    int IsDirectHit()
+    Combinations IsPair()
     {
-        // One card must be on hand and another on the table
-        if (Selected[0].status != Selected[1].status)
+        Combinations result = Combinations.Blank;
+        // Check if card numbers is similar
+        if (Selected[0].cardValue.x == Selected[1].cardValue.x)
         {
-            // Check if card numbers is similar
-            if (Selected[0].cardValue.x == Selected[1].cardValue.x)
+            dealer.addToPile();
+            result = Combinations.Pair;
+            if (IsDirectHit())
             {
-                // Check if either one is armed
-                if (Selected[0].Armed || Selected[1].Armed)
-                {
-                    Debug.Log((int)currentGameState);
-                    return 0;
-                }
-                return 1;
-            }   
+                result = Combinations.PairD;
+            }
+            if (IsClearTheTable())
+            {
+                if (result == Combinations.PairD)
+                    result = Combinations.PairDC;
+                else
+                    result = Combinations.PairC;
+                    
+            }
+            return result;
         }
-        return -1;
+        return Combinations.Wrong;
     }
 
-    bool IsAdditive()
+    Combinations IsAdditive()
     {
+        Combinations result = Combinations.Blank;
         int playerCardCheck = 0;
-        Card checkCard = Selected[0];
+        int checkCard = -1;
         int check = 0;
 
-        foreach(Card card in Selected)
+        foreach (Card card in Selected)
         {
-            // Find the players card
-            if(card.status == currentGameState)
+            if(card.cardValue.x < 11)
             {
-                //Debug.Log("Its here now");
-                playerCardCheck++;
-                // If there are more than 1 hand cards
-                if(playerCardCheck >= 2)
+                // Find the players card
+                if (card.status == currentGameState)
                 {
-                    //Debug.Log("Its here now 2");
-                    return false;
+                    playerCardCheck++;
+                    // If there are more than 1 hand cards
+                    if (playerCardCheck >= 2)
+                    {
+                        return Combinations.Wrong;
+                    }
+                    checkCard = (int)card.cardValue.x;
                 }
-                checkCard = card;
-            }
-            else
-            {
-                //Debug.Log("Its here now 3");
-                check += (int)card.cardValue.x;
+                else
+                {
+                    // Make sure its not a face card
+                    check += (int)card.cardValue.x;
+                }
             }
         }
-
         //Debug.Log(check);
         //Debug.Log(checkCard.cardValue.x);
         // Check if player card adds up to the other cards
-        if (checkCard.cardValue.x == check)
+        if (checkCard == check)
         {
-            //Debug.Log("Its here now 4");
-            return true;
+            dealer.addToPile();
+            result = Combinations.Add;
+            if (IsDirectHit())
+            {
+                result = Combinations.AddD;
+            }
+            if (IsClearTheTable())
+            {
+                if(result == Combinations.AddD)
+                {
+                    result = Combinations.AddDC;
+                }
+                else
+                {
+                    result = Combinations.AddC;
+                }
+            }
+            return result;
         }
+        return Combinations.Wrong;
+    }
+
+    bool IsDirectHit()
+    {
+        foreach(Card card in Selected)
+        {
+            if(card.status == GameState.Face && card.Armed)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool IsClearTheTable()
+    {
+        if (dealer.CheckClearTheTable())
+            return true;
 
         return false;
     }
@@ -272,7 +318,17 @@ public class Manager : MonoBehaviour
         {
             dealer.placeOnTable();
             StartCoroutine(AfterPlaced());
+            DealerUI.instance.OnRoundEnd(Combinations.Placed);
         }
+        else if(Selected.Count > 1)
+        {
+            DealerUI.instance.OnRoundEnd(Combinations.TooManySelected);
+        }
+        else
+        {
+            DealerUI.instance.OnRoundEnd(Combinations.Blank);
+        }
+        
     }
     IEnumerator AfterPlaced()
     {
@@ -287,9 +343,7 @@ public class Manager : MonoBehaviour
 
         Face.Add(Selected[0]);
         Selected.Clear();
-
-        SwitchPlayer();
-        DealerUI.instance.OnRoundEnd();
+        //SwitchPlayer();
     }
 
     // To switch player
@@ -312,8 +366,8 @@ public class Manager : MonoBehaviour
     // To change camera
     IEnumerator CamSwitch()
     {
-        Debug.Log(RoundNo);
-        yield return new WaitForSeconds(1.0f);
+        //Debug.Log(RoundNo);
+        //yield return new WaitForSeconds(1.0f);
 
         Quaternion target;
         //Debug.Log(currentGameState);
@@ -330,6 +384,8 @@ public class Manager : MonoBehaviour
         }
 
         camPivot.transform.rotation = target;
+
+        yield return null;
 
         /*
         switching = true;
@@ -368,6 +424,33 @@ public class Manager : MonoBehaviour
             {
                 card.Armed = false;
             }
+        }
+    }
+
+    public void OnGameOver()
+    {
+        currentGameState = GameState.GameOver;
+
+        if(P1Pile.Count > P2Pile.Count)
+        {
+            p1Score++;
+        }
+        if (P1Pile.Count < P2Pile.Count)
+        {
+            p2Score++;
+        }
+
+        if (p1Score > p2Score)
+        {
+            DealerUI.instance.OnGameOver(1);
+        }
+        else if(p1Score < p2Score)
+        {
+            DealerUI.instance.OnGameOver(2);
+        }
+        else
+        {
+            DealerUI.instance.OnGameOver(0);
         }
     }
 }
